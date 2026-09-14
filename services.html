@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — Sabal Security</title>
+  <meta name="description" content="Network, application &amp; API, AI, social engineering, physical and red team penetration testing — manual, expert-led, and delivered with remediation support and retesting.">
+  <meta name="theme-color" content="#01020b">
+  <link rel="canonical" href="https://sabalsec.com/services.html">
+
+  <meta property="og:title" content="Services — Sabal Security">
+  <meta property="og:description" content="Manual, expert-led penetration testing across network, applications, AI, people and facilities.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sabalsec.com/services.html">
+  <meta property="og:image" content="https://sabalsec.com/assets/img/sabal-logo-full.png">
+
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="nav__logo" href="index.html" aria-label="Sabal Security home">
+        <img src="assets/img/sabal-wordmark.png" alt="Sabal Security" width="540" height="132">
+      </a>
+      <button class="nav__toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav__links" id="nav-links">
+        <a href="index.html">Home</a>
+        <a href="services.html" aria-current="page">Services</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a class="btn" href="contact.html">Scope a test</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="page-head">
+      <div class="container">
+        <p class="eyebrow">Services</p>
+        <h1>Tested the way an attacker would do it.</h1>
+        <p class="lead">Manual, adversary-driven assessments aligned to NIST SP 800-115, PTES, OWASP and MITRE ATT&amp;CK. Every engagement is scoped to your environment, priced as a fixed fee, and followed by remediation support and a retest.</p>
+        <div class="tags mt-2">
+          <a class="tag tag--cyan" href="#network">Network</a>
+          <a class="tag tag--cyan" href="#application">Application &amp; API</a>
+          <a class="tag tag--cyan" href="#ai">AI</a>
+          <a class="tag tag--cyan" href="#social">Social Engineering</a>
+          <a class="tag tag--cyan" href="#physical">Physical</a>
+          <a class="tag tag--cyan" href="#redteam">Red Team</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+
+      <!-- 01 Network -->
+      <article class="service" id="network">
+        <div>
+          <p class="service__num">01</p>
+          <h2>Network Penetration Testing</h2>
+          <p class="service__summary">A manual, adversary-driven test of your external and internal network to identify and exploit weaknesses the way a real attacker would — deeper and more targeted than a vulnerability scan.</p>
+          <div class="tags service__meta">
+            <span class="tag">1–3 weeks</span>
+            <span class="tag">Remote</span>
+            <span class="tag">External · Internal</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>External: reconnaissance, service enumeration, exploitation of internet-facing systems, and credential attacks against exposed services.</li>
+              <li>Internal: host discovery, Active Directory attacks, privilege escalation, lateral movement, and access to critical resources.</li>
+              <li>Manual validation of scanner output to eliminate false positives and prove real impact.</li>
+              <li>Risk-ranking of findings mapped to your business context.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>Executive summary, technical findings with evidence and reproduction steps, a prioritized remediation roadmap, and a live debrief.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 02 Application & API -->
+      <article class="service" id="application">
+        <div>
+          <p class="service__num">02</p>
+          <h2>Application &amp; API Penetration Testing</h2>
+          <p class="service__summary">Web applications and APIs assessed for exploitable flaws across authentication, authorization, input handling and business logic — aligned to the OWASP Testing Guide and ASVS.</p>
+          <div class="tags service__meta">
+            <span class="tag">1–2 weeks per app set</span>
+            <span class="tag">Remote</span>
+            <span class="tag">REST · GraphQL · SOAP</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>Authenticated and unauthenticated testing across every user role.</li>
+              <li>OWASP Top 10 and beyond — access control, injection, SSRF, and the logic flaws scanners miss.</li>
+              <li>API testing for REST, GraphQL and SOAP endpoints.</li>
+              <li>Manual exploitation to demonstrate real data or account exposure.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>Findings by severity with proof-of-concept, remediation guidance per issue, and a debrief with your engineering team.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 03 AI -->
+      <article class="service" id="ai">
+        <div>
+          <p class="service__num">03</p>
+          <h2>AI Penetration Testing</h2>
+          <p class="service__summary">Assessment of LLM-powered applications, agents and the integrations around them — for the failure modes traditional testing doesn't cover. Aligned to the OWASP Top 10 for LLM Applications and MITRE ATLAS.</p>
+          <div class="tags service__meta">
+            <span class="tag">1–2 weeks per application</span>
+            <span class="tag">Remote</span>
+            <span class="tag">LLM · RAG · Agents</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>Direct and indirect prompt injection, jailbreaks, and system-prompt extraction.</li>
+              <li>Data leakage: sensitive information in responses, retrieval (RAG) and training-data exposure, cross-tenant access.</li>
+              <li>Excessive agency: abuse of tools, function calls and agent workflows to reach real systems and data.</li>
+              <li>Insecure output handling and the application around the model — how model output is trusted downstream, plus the usual auth and API weaknesses.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>Findings with reproducible prompts and evidence, ranked by real impact, with remediation guidance for both the model layer and the application.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 04 Social Engineering -->
+      <article class="service" id="social">
+        <div>
+          <p class="service__num">04</p>
+          <h2>Social Engineering</h2>
+          <p class="service__summary">Controlled campaigns that test your people and the controls around them — measuring detection and response, not just who clicked.</p>
+          <div class="tags service__meta">
+            <span class="tag">1–2 weeks per campaign</span>
+            <span class="tag">Phishing · Vishing · Pretext</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>Phishing, and optionally vishing (voice) and pretext scenarios, tailored to your organization.</li>
+              <li>Assessment of email security controls (SPF/DKIM/DMARC), endpoint response, and user reporting.</li>
+              <li>Measurement of detection and response times — not just click rate.</li>
+              <li>Optional payload and endpoint testing under agreed rules of engagement.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>Campaign results, control-effectiveness analysis, and awareness recommendations you can act on.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 05 Physical -->
+      <article class="service" id="physical">
+        <div>
+          <p class="service__num">05</p>
+          <h2>Physical Penetration Testing</h2>
+          <p class="service__summary">On-site testing of physical controls — badges, locks, tailgating and facility access — to evaluate how far an intruder could get in person.</p>
+          <div class="tags service__meta">
+            <span class="tag">2–5 days per location</span>
+            <span class="tag">On-site</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>Covert entry attempts, tailgating, and badge cloning where authorized.</li>
+              <li>Assessment of reception, visitor and escort procedures.</li>
+              <li>Access to sensitive areas, network jacks and unattended workstations.</li>
+              <li>Conducted under a signed authorization-to-test letter carried on site.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>A narrative of access achieved, evidence, and practical physical-control recommendations.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 06 Red Team -->
+      <article class="service" id="redteam">
+        <div>
+          <p class="service__num">06</p>
+          <h2>Red Team</h2>
+          <p class="service__summary">A goal-based, multi-vector adversary emulation that combines network, application, social and physical techniques to test your prevention and detection against a realistic threat.</p>
+          <div class="tags service__meta">
+            <span class="tag">3–6 weeks</span>
+            <span class="tag">Objective-driven</span>
+            <span class="tag">MITRE ATT&amp;CK</span>
+          </div>
+        </div>
+        <div>
+          <div class="service__block">
+            <p class="service__label">Approach</p>
+            <ul class="list-check">
+              <li>Objective-driven — access to specific data or systems — rather than breadth-first.</li>
+              <li>Stealth and evasion to test detection and response, mapped to MITRE ATT&amp;CK.</li>
+              <li>Multiple entry vectors chained toward the objective.</li>
+              <li>Optional purple-team collaboration to maximize defender learning.</li>
+            </ul>
+          </div>
+          <div class="service__block">
+            <p class="service__label">You receive</p>
+            <p>Attack narrative, timeline, detection analysis, and strategic recommendations for leadership and your SOC.</p>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Additional capabilities -->
+    <section class="section section--line" id="more">
+      <div class="container">
+        <p class="eyebrow">Also available</p>
+        <h2>Additional capabilities</h2>
+        <p class="lead mt-2">Engagements can be combined into a single program. If you don't see exactly what you need, ask — we tailor.</p>
+        <div class="grid grid--3 mt-3">
+          <div class="card">
+            <h3>Wireless Assessment</h3>
+            <p>Rogue access points, encryption and authentication attacks, and guest/corporate segmentation testing.</p>
+          </div>
+          <div class="card">
+            <h3>Purple Team</h3>
+            <p>Collaborative attack-and-defend exercises to tune your detections and playbooks in real time.</p>
+          </div>
+          <div class="card">
+            <h3>Cloud Security Review</h3>
+            <p>Configuration and identity review across AWS, Azure and GCP against CIS Benchmarks and provider best practice.</p>
+          </div>
+          <div class="card">
+            <h3>OT / ICS Assessment</h3>
+            <p>Safe, carefully scoped testing of operational technology environments, prioritizing availability and safety.</p>
+          </div>
+          <div class="card">
+            <h3>Advisory &amp; vCISO</h3>
+            <p>Risk assessments, compliance readiness (PCI, SOC 2, HIPAA) and fractional security leadership.</p>
+          </div>
+          <div class="card">
+            <h3>Remediation Services</h3>
+            <p>Hands-on help closing the gaps we (or others) find — hardening, fixes, validation and retest.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Engagement models -->
+    <section class="section section--line">
+      <div class="container">
+        <p class="eyebrow">How to work with us</p>
+        <h2>Engagement models that fit</h2>
+        <div class="grid grid--3 mt-3">
+          <div class="card">
+            <span class="card__num">Project-based</span>
+            <h3>Point-in-time validation</h3>
+            <p>Defined-scope assessments — pen test, red team, app or wireless — delivered on a fixed timeline and a fixed price. Best for annual testing and compliance.</p>
+          </div>
+          <div class="card">
+            <span class="card__num">Testing-as-a-Service</span>
+            <h3>Ongoing assurance</h3>
+            <p>A continuous program of scheduled and on-demand testing under one agreement, at a lower blended rate. Best when testing needs to keep pace with change.</p>
+          </div>
+          <div class="card">
+            <span class="card__num">Advisory retainer</span>
+            <h3>On-call expertise</h3>
+            <p>vCISO, architecture and remediation guidance whenever you need it. Best for maturing a security program.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="container">
+        <p class="eyebrow center">Next step</p>
+        <h2>Not sure which one you need?</h2>
+        <p class="lead">A 30-minute scoping call is usually enough to size the work and get you a fixed price.</p>
+        <a class="btn btn--primary" href="contact.html">Start a scoping call</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <img src="assets/img/sabal-wordmark.png" alt="Sabal Security" width="540" height="132">
+          <p>Offensive security, tested by hand. Named for the sabal palm — built to bend, not break.</p>
+        </div>
+        <div>
+          <p class="footer__title">Services</p>
+          <ul>
+            <li><a href="services.html#network">Network Penetration Testing</a></li>
+            <li><a href="services.html#application">Application &amp; API Testing</a></li>
+            <li><a href="services.html#ai">AI Penetration Testing</a></li>
+            <li><a href="services.html#social">Social Engineering</a></li>
+            <li><a href="services.html#physical">Physical Penetration Testing</a></li>
+            <li><a href="services.html#redteam">Red Team</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__title">Company</p>
+          <ul>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 Sabal Security, LLC. All rights reserved.</span>
+        <span class="footer__tag">Hope is not a security strategy.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
