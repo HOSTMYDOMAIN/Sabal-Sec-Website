@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pentester Perspective: Breaking Bad Backups v2 — Sabal Security</title>
+  <meta name="description" content="Part two of Breaking Bad Backups: turning an exposed vCenter backup share into a forged admin session, dumping DC snapshots for credentials, and chaining CVE-2026-59310 for unauthenticated root.">
+  <meta name="theme-color" content="#01020b">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Pentester Perspective: Breaking Bad Backups v2">
+  <meta property="og:description" content="Part two of Breaking Bad Backups: turning an exposed vCenter backup share into a forged admin session, dumping DC snapshots for credentials, and chaining CVE-2026-59310 for unauthenticated root.">
+  <meta property="og:image" content="https://adversaryco.com/images/bbb2-cover.jpg">
+  <meta property="og:url" content="https://sabalsec.com/blog/breaking-bad-backups-v2.html">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="canonical" href="https://sabalsec.com/blog/breaking-bad-backups-v2.html">
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="nav__logo" href="../index.html" aria-label="Sabal Security home">
+        <img src="../assets/img/sabal-wordmark.png" alt="Sabal Security" width="540" height="132">
+      </a>
+      <button class="nav__toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav__links" id="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../services.html">Services</a>
+        <a href="../about.html">About</a>
+        <a href="./" aria-current="page">Blog</a>
+        <a href="../contact.html">Contact</a>
+        <a class="btn" href="../contact.html">Scope a test</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <article class="blog-post">
+      <div class="container">
+        <header class="post-header">
+          <h1>Pentester Perspective: Breaking Bad Backups v2</h1>
+          <p class="post-subtitle">Exploiting vCenter Backups: SAML Forgery, Snapshot Credential Theft, and an Unauthenticated RCE</p>
+          <div class="post-meta">
+            <span class="post-date">August 10, 2026</span>
+            <span class="post-author">By: Matt Millen</span>
+          </div>
+        </header>
+
+        <div class="post-content">
+          <p class="tldr"><strong>TL;DR:</strong> Protect the LOTUS, patch the systems, and stop leaving full copies of critical system backups sitting in accessible shares.</p>
+
+          <div class="post-image cover-image">
+            <img src="https://adversaryco.com/images/bbb2-cover.jpg" alt="Meme: CISO Todd Breachwell posts about someone stealing his backups; Rent-A-vCenter replies 'Pull up...'">
+          </div>
+
+          <p>In <a href="breaking-bad-backups.html">part one</a>, we walked through how exploitation of common backup infrastructure misconfigurations can lead to full domain compromise.</p>
+
+          <p>This time we're staying on those same exposed shares, but going after a different prize: vCenter backups. I'll walk through taking a single low-priv SMB share to full control of the virtual infrastructure (including the domain controllers and backup infrastructure that often are managed by these servers), then amplify that risk by showing you a new CVE that gets you the same access with no backup files or credentials.</p>
+
+          <h2>Beware of the LOTUS</h2>
+          <p>On just about every internal pentest, I find SMB shares readable by low-privilege users. Nothing new there. But every now and then (honestly, more often than I'd like) one of those shares is holding some kind of backup file.</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-backup-share-access.png" alt="Low-privilege domain user with READ access to a Backups share">
+            <p class="image-caption">A standard domain user with READ access to the "Backups" share</p>
+          </div>
+
+          <p>On a recent engagement I found exactly that: a "Backups" share a standard domain user could read, and buried in it, a folder full of vCenter backup files.</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-lotus-files.png" alt="vCenter backup archive containing lotus_backup.tar.gz and config_files.tar.gz">
+            <p class="image-caption">vCenter backup files in share</p>
+          </div>
+
+          <p>"Lotus" is the internal codename for the VMware Directory Service (vmdir), the component that runs vCenter Single Sign-On. That <code>lotus_backup.tar.gz</code> archive contains <code>data.mdb</code>, the vmdir database. <code>data.mdb</code> stores the SAML Identity Provider signing certificate and its private key in cleartext.</p>
+
+          <p>With that certificate you can forge a SAML assertion for any user vCenter trusts (including <code>administrator@vsphere.local</code>) and sign yourself into the vSphere UI without touching a password. The <code>lotus_backup.tar.gz</code> is the real gold here, but the <code>config_files.tar.gz</code> file is worth noting as it can also be used to give access to the vCenter console (although at a lower privilege level). Either way, a share leaking one of these archives is a problem.</p>
+
+          <h2>The Old Way</h2>
+          <p>None of this SAML forging is new. Horizon3.ai documented the whole technique in their blog <a href="https://horizon3.ai/attack-research/attack-blogs/compromising-vcenter-via-saml-certificates/" target="_blank" rel="noopener noreferrer">"Compromising vCenter via SAML Certificates"</a> and released <a href="https://github.com/horizon3ai/vcenter_saml_login" target="_blank" rel="noopener noreferrer">vcenter_saml_login</a> to do the heavy lifting. Their tool worked great for me in the past, and the associated blog has been a great source of reference for me when testing against vCenter this past couple of years. It explains the nuts and bolts better than I'd be able to, so worth the read if you're in the research mood.</p>
+
+          <p>The manual flow looks like this. Extract the lotus archive to pull out <code>data.mdb</code>, point the tool at it, and it rips the IdP cert and forges an Administrator session cookie:</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-saml-login.png" alt="Extracting data.mdb from lotus_backup.tar.gz and forging an Administrator cookie with vcenter_saml_login">
+            <p class="image-caption">Extract lotus_backup.tar.gz &rarr; data.mdb &rarr; forged Administrator cookie</p>
+          </div>
+
+          <p>In older versions of vCenter, you could then drop that cookie into your browser and you're in — staring at the vSphere UI as <code>administrator@vsphere.local</code>:</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-cookie-import.png" alt="Importing the forged session cookie into the browser to access the vSphere UI as administrator">
+            <p class="image-caption">Importing the forged session cookie for a full admin UI session</p>
+          </div>
+
+          <p>From here you own the virtual infrastructure: start/stop VMs, delete data, whatever. But what you probably care about is grabbing a snapshot of a juicy VM (say, a domain controller) and pulling credentials straight out of its memory. Download the <code>.vmem</code> and <code>.vmsn</code> files:</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-snapshot-download.png" alt="Downloading domain controller snapshot memory files (.vmem and .vmsn) from the datastore">
+            <p class="image-caption">Grabbing the DC snapshot memory files from the datastore</p>
+          </div>
+
+          <p>Then run them through VMKatz to rip credentials out of the snapshot memory:</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-vmkatz.png" alt="Extracting credentials and NT hashes from a DC snapshot with VMKatz">
+            <p class="image-caption">VMKatz pulling hashes out of the DC snapshot memory</p>
+          </div>
+
+          <p>DC snapshot &rarr; NT hashes &rarr; Domain Compromise. Same destination as part one, different road.</p>
+
+          <h2>The New Way</h2>
+          <p>The old way is a solid reference point, but it has real limits. On newer versions of vCenter, getting the appropriate cookies in place can be a pain — you can still pull it off, but you'd need to craft additional session material to get a fully authenticated session. And even if you had everything you needed, clicking through a browser UI is slow when you could just live in the terminal.</p>
+
+          <p>So I built a tool that handles the whole chain end to end. Point <a href="https://github.com/mattmillen15/rent-a-vCenter" target="_blank" rel="noopener noreferrer">rent-a-vCenter</a> at the network share (or a local path) with the vCenter backup files, and it figures out what it's working with, handles the auth whether you're up against a patched or unpatched system, enumerates VMs, and automates the process of extracting credentials from VM snapshots to pull credentials.</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-rav-session.png" alt="rent-a-vCenter locating backup files on a share and obtaining an admin session token">
+            <p class="image-caption">rent-a-vCenter finds the backups and forges an admin session token</p>
+          </div>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-rav-dump.png" alt="rent-a-vCenter enumerating VMs and dumping credentials from a DC snapshot">
+            <p class="image-caption">Enumerating VMs and dumping credentials from the DC snapshot</p>
+          </div>
+
+          <p>Same result as the manual method, but way less of a headache.</p>
+
+          <h2>CVE-2026-59310</h2>
+          <p>Here's where it gets fun. Right before I released rent-a-vCenter, a co-worker flagged CVE-2026-59310, a critical (CVSS 9.8) directory traversal in the vCenter syslog service, disclosed in Broadcom's <a href="https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/38017" target="_blank" rel="noopener noreferrer">VMSA-2026-0006</a> on July 29, 2026. There were no public PoCs at the time.</p>
+
+          <p>The short version: the syslog service doesn't properly restrict path resolution, so an unauthenticated attacker who can reach it over the network can traverse out of the intended directory and write attacker-controlled content where it doesn't belong, like a cron job. Land a file in <code>/etc/cron.d/</code>, wait for cron to fire, and you've got code execution as root. No credentials required.</p>
+
+          <p>I already had a vCenter/ESXi lab stood up for other work, so I gave the details to Claude, and to my surprise, less than half an hour later I had a working 3-line Python PoC that demonstrated an unauthenticated path to full control of the vCenter infrastructure.</p>
+
+          <p>Here's a sanitized version of the original PoC that shows the mechanics without giving away the payload:</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-cve-poc.png" alt="Sanitized minimal proof-of-concept for CVE-2026-59310 confirming root access on vCenter">
+            <p class="image-caption">Sanitized PoC: fresh host, run the PoC, root access (payload redacted)</p>
+          </div>
+
+          <p>From there it wasn't much work to bolt the CVE onto rent-a-vCenter, automating the vCenter host compromise, then using that access to grab the session information we needed to run the familiar VM snapshot &rarr; credential extraction path and take full control of critical domain hosts.</p>
+
+          <div class="post-image">
+            <img src="https://adversaryco.com/images/bbb2-rav-cve.png" alt="rent-a-vCenter chaining CVE-2026-59310 from unauthenticated access to dumping DC snapshot credentials">
+            <p class="image-caption">rent-a-vCenter chaining CVE-2026-59310 to extract creds from a DC</p>
+          </div>
+
+          <p>Most vCenter instances I see in production are hosting domain controllers, and plenty are hosting the backup infrastructure too: Veeam, non-domain-joined backup servers, all of it. An unauthenticated RCE on vCenter isn't "a virtualization problem." It's an instant path to domain compromise and potentially even compromise of the very backups that are supposed to save you.</p>
+
+          <p class="tldr"><strong>If you're a defender:</strong> PATCH THIS NOW.</p>
+
+          <p>One note on the tool itself: <a href="https://github.com/mattmillen15/rent-a-vCenter" target="_blank" rel="noopener noreferrer">rent-a-vCenter</a> is public on GitHub, but the build with the <code>--cve</code> flag is not (and won't be for now). This vulnerability is too simple to exploit, and I see out-of-date vCenter/ESXi deployments on far too many internal penetration tests. Chaining an unauthenticated RCE straight into full vCenter compromise isn't something I'm comfortable handing out as a one-liner. Public PoCs will surface (a few are already floating around as I write this), but I'm not going to be that guy.</p>
+
+          <h2>Protect Your Backups</h2>
+          <p>Same moral as part one, just louder this time. Your backups (and the systems that hold them) are a complete copy of your environment. Treat them like it:</p>
+
+          <ul>
+            <li><strong>Encrypt the vCenter backups.</strong> <code>lotus_backup.tar.gz</code> contains <code>data.mdb</code> — the vmdir database with the SAML signing certificate used to forge admin sessions. <code>config_files.tar.gz</code> carries the vCenter solution user credentials, which open a separate attack path. One of these archives in the wrong hands is a problem. Encrypt the vCenter file-based backups at rest so a stolen archive is useless.</li>
+            <li><strong>Encrypt the actual system backups too.</strong> Same story for the servers being backed up: an unencrypted DC backup is a free copy of NTDS.dit and every hash in the domain. Turn on backup encryption across the board.</li>
+            <li><strong>Lock down the shares.</strong> Proper ACLs and firewall rules. Standard domain users (and absolutely unauthenticated users) have no business reading a backup repository.</li>
+            <li><strong>Break the blast radius.</strong> Domain compromise shouldn't automatically mean backup compromise, and vice versa.</li>
+            <li><strong>Patch virtual infrastructure like you would a domain controller.</strong> Unfortunately enough, vCenter/ESXi being out of date is a regular finding on the pentests I perform.</li>
+          </ul>
+
+          <p><strong>TEST, LEARN, STRENGTHEN, REPEAT!</strong></p>
+
+          <h2>References</h2>
+          <ul class="references">
+            <li><a href="breaking-bad-backups.html">Breaking Bad Backups (Part One)</a></li>
+            <li><a href="https://horizon3.ai/attack-research/attack-blogs/compromising-vcenter-via-saml-certificates/" target="_blank" rel="noopener noreferrer">Horizon3.ai: Compromising vCenter via SAML Certificates</a></li>
+            <li><a href="https://github.com/horizon3ai/vcenter_saml_login" target="_blank" rel="noopener noreferrer">horizon3ai/vcenter_saml_login</a></li>
+            <li><a href="https://github.com/mattmillen15/rent-a-vCenter" target="_blank" rel="noopener noreferrer">rent-a-vCenter</a></li>
+            <li><a href="https://www.rapid7.com/blog/post/etr-critical-vmware-vcenter-vulnerabilities-allow-authentication-bypass-and-remote-code-execution-cve-2026-59309-cve-2026-59310/" target="_blank" rel="noopener noreferrer">Rapid7: Critical VMware vCenter Vulnerabilities (CVE-2026-59309, CVE-2026-59310)</a></li>
+            <li><a href="https://support.broadcom.com/web/ecx/support-content-notification/-/external/content/SecurityAdvisories/0/38017" target="_blank" rel="noopener noreferrer">Broadcom: VMSA-2026-0006</a></li>
+          </ul>
+        </div>
+
+        <div class="post-footer">
+          <a href="breaking-bad-backups.html" class="btn">&larr; Read Part One</a>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <img src="../assets/img/sabal-wordmark.png" alt="Sabal Security" width="540" height="132">
+          <p>Named for the sabal palm — built to bend, not break.</p>
+        </div>
+        <div>
+          <p class="footer__title">Services</p>
+          <ul>
+            <li><a href="../services.html#network">Network Penetration Testing</a></li>
+            <li><a href="../services.html#application">Application &amp; API Testing</a></li>
+            <li><a href="../services.html#ai">AI Penetration Testing</a></li>
+            <li><a href="../services.html#social">Social Engineering</a></li>
+            <li><a href="../services.html#physical">Physical Penetration Testing</a></li>
+            <li><a href="../services.html#redteam">Red Team</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer__title">Company</p>
+          <ul>
+            <li><a href="../about.html">About</a></li>
+            <li><a href="./">Blog</a></li>
+            <li><a href="../contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 Sabal Security, LLC. All rights reserved.</span>
+        <span class="footer__tag">Hope is not a security strategy.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/main.js" defer></script>
+</body>
+</html>
